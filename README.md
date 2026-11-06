@@ -4,9 +4,11 @@ A Vietnamese learning application built for the BTL Cloud course project. Includ
 
 ## What is implemented
 
+- Search by course title/description, category/level filtering, course details.
+- Instructor course and lesson editing. Draft publication checks; published lesson structure is frozen.
 - ChatGPT identity supplied and verified by Sites, with server-side role checks.
-- Learner, instructor, and administrator roles. The first signed-in visitor becomes administrator; subsequent visitors default to learner.
-- Member profile updates and weekly target learning goals.
+- Learner, instructor, and administrator roles.
+- Seeded course structure with structured reading lessons.
 
 ## Architecture
 
