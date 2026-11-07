@@ -8,6 +8,13 @@
       "when": 1793323483267,
       "tag": "0000_cultured_thunderbird",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1793538352272,
+      "tag": "0001_absurd_slipstream",
+      "breakpoints": true
     }
   ]
 }

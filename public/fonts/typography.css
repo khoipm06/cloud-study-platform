@@ -1,0 +1,39 @@
+@font-face {
+  font-family: 'Cloud Study Sans';
+  src: url('/fonts/study-sans-regular.woff') format('woff');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cloud Study Sans';
+  src: url('/fonts/study-sans-bold.woff') format('woff');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cloud Study Sans';
+  src: url('/fonts/study-sans-italic.woff') format('woff');
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cloud Study Serif';
+  src: url('/fonts/study-serif-regular.woff') format('woff');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cloud Study Serif';
+  src: url('/fonts/study-serif-italic.woff') format('woff');
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+}

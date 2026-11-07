@@ -1,0 +1,142 @@
+.study-chart-figure {
+  margin: 0;
+  min-width: 0;
+}
+
+.study-chart-rhythm,
+.study-chart-scores {
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: auto;
+}
+
+.activity-card,
+.quiz-score-chart {
+  min-width: 0;
+}
+
+.study-chart-rhythm {
+  height: 142px;
+}
+
+.study-chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #5c7165;
+  font-size: 11px;
+}
+
+.study-chart-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #36765c;
+}
+
+.study-chart-empty {
+  display: grid;
+  min-height: 142px;
+  padding: 16px;
+  place-items: center;
+  border: 1px dashed #dce6dc;
+  border-radius: 8px;
+  background: #f7faf6;
+  color: #5c7165;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.study-chart-tooltip {
+  max-width: min(15rem, 65vw);
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 4px 16px #243c361a;
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.study-chart-tooltip strong,
+.study-chart-tooltip span {
+  display: block;
+}
+
+.quiz-score-chart {
+  margin-bottom: 20px;
+  padding: 20px;
+}
+
+.quiz-score-chart h2 {
+  font-size: 18px;
+}
+
+.quiz-score-chart p {
+  margin: 6px 0 14px;
+  color: #5c7165;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.course-detail-aside {
+  display: grid;
+  gap: 16px;
+}
+
+.course-progress-card {
+  padding: 20px;
+  text-align: center;
+}
+
+.course-progress-card p {
+  margin-top: 10px;
+  color: #5c7165;
+  font-size: 12px;
+}
+
+.course-progress-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 140px;
+  height: 140px;
+  margin: 16px auto 0;
+}
+
+.course-progress-ring [data-slot="chart"] {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: auto;
+}
+
+.course-progress-ring strong {
+  position: relative;
+  font-size: 29px;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1050px) {
+  .course-detail-aside:not(:has(.course-progress-card)) {
+    display: none;
+  }
+}
+
+@media (max-width: 500px) {
+  .dashboard-aside > .goal-card,
+  .dashboard-aside > .activity-card {
+    grid-column: 1 / -1;
+  }
+
+  .goal-card .week-days {
+    max-width: 16rem;
+    margin-inline: auto;
+  }
+
+  .quiz-score-chart {
+    padding: 16px;
+  }
+}
