@@ -4,11 +4,11 @@ A Vietnamese learning application built for the BTL Cloud course project. Includ
 
 ## What is implemented
 
+- PDF (10 MiB), PNG/JPEG (5 MiB) uploads to private R2 storage.
+- Server validates binary magic signatures and serves authorized attachments with strict mime typing.
+- Course owners can upload and remove lesson materials with automatic storage cleanup.
 - Search by course title/description, category/level filtering, course details.
-- Instructor course and lesson editing. Draft publication checks; published lesson structure is frozen.
-- ChatGPT identity supplied and verified by Sites, with server-side role checks.
-- Learner, instructor, and administrator roles.
-- Seeded course structure with structured reading lessons.
+- Instructor course and lesson editing.
 
 ## Architecture
 

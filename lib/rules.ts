@@ -1,0 +1,1 @@
+export function fileKind(b:Uint8Array){if(b[0]===0x25&&b[1]===0x50&&b[2]===0x44&&b[3]===0x46&&b[4]===0x2d)return 'application/pdf';if([137,80,78,71,13,10,26,10].every((v,i)=>b[i]===v))return 'image/png';if(b[0]===255&&b[1]===216&&b[2]===255)return 'image/jpeg';return null;}

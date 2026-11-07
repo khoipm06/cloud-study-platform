@@ -39,3 +39,13 @@ export const lessons = sqliteTable('lessons', {
   minutes: integer('minutes').notNull().default(10),
   version: integer('version').notNull().default(1),
 }, t => [uniqueIndex('lesson_order').on(t.courseId, t.position)]);
+
+export const materials = sqliteTable('materials', {
+  id: text('id').primaryKey(),
+  lessonId: text('lesson_id').notNull().references(() => lessons.id),
+  objectKey: text('object_key').notNull(),
+  name: text('name').notNull(),
+  mime: text('mime').notNull(),
+  size: integer('size').notNull(),
+  createdAt: text('created_at').notNull(),
+});

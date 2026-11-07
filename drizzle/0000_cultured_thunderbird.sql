@@ -26,6 +26,17 @@ CREATE TABLE `lessons` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `lesson_order` ON `lessons` (`course_id`,`position`);--> statement-breakpoint
+CREATE TABLE `materials` (
+	`id` text PRIMARY KEY NOT NULL,
+	`lesson_id` text NOT NULL,
+	`object_key` text NOT NULL,
+	`name` text NOT NULL,
+	`mime` text NOT NULL,
+	`size` integer NOT NULL,
+	`created_at` text NOT NULL,
+	FOREIGN KEY (`lesson_id`) REFERENCES `lessons`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
 CREATE TABLE `members` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
