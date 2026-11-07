@@ -4,9 +4,10 @@ A Vietnamese learning application built for the BTL Cloud course project. Includ
 
 ## What is implemented
 
-- PDF (10 MiB), PNG/JPEG (5 MiB) uploads to private R2 storage.
-- Server validates binary magic signatures and serves authorized attachments with strict mime typing.
-- Course owners can upload and remove lesson materials with automatic storage cleanup.
+- Idempotent course enrollment and completion tracking.
+- Private notes stored per user and lesson; empty notes automatically purged.
+- Quiz snapshots, resumable active attempts per course/person, answer persistence, optimistic version checks, 24-hour expiry, server-side grading, and immutable attempt history.
+- PDF (10 MiB) and image (5 MiB) uploads to private R2 storage.
 - Search by course title/description, category/level filtering, course details.
 - Instructor course and lesson editing.
 

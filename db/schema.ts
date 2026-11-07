@@ -1,51 +1,12 @@
-import { sqliteTable, text, integer, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, primaryKey, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
-export const settings = sqliteTable('settings', {
-  key: text('key').primaryKey(),
-  value: text('value').notNull(),
-});
-
-export const members = sqliteTable('members', {
-  id: text('id').primaryKey(),
-  name: text('name').notNull(),
-  email: text('email').notNull(),
-  role: text('role').notNull().default('LEARNER'),
-  blocked: integer('blocked').notNull().default(0),
-  goal: integer('goal').notNull().default(5),
-  createdAt: text('created_at').notNull(),
-});
-
-export const courses = sqliteTable('courses', {
-  id: text('id').primaryKey(),
-  ownerId: text('owner_id').notNull().references(() => members.id),
-  title: text('title').notNull(),
-  description: text('description').notNull(),
-  category: text('category').notNull(),
-  level: text('level').notNull(),
-  color: text('color').notNull(),
-  status: text('status').notNull().default('DRAFT'),
-  hidden: integer('hidden').notNull().default(0),
-  quiz: text('quiz').notNull().default('[]'),
-  version: integer('version').notNull().default(1),
-  createdAt: text('created_at').notNull(),
-});
-
-export const lessons = sqliteTable('lessons', {
-  id: text('id').primaryKey(),
-  courseId: text('course_id').notNull().references(() => courses.id),
-  title: text('title').notNull(),
-  content: text('content').notNull(),
-  position: integer('position').notNull(),
-  minutes: integer('minutes').notNull().default(10),
-  version: integer('version').notNull().default(1),
-}, t => [uniqueIndex('lesson_order').on(t.courseId, t.position)]);
-
-export const materials = sqliteTable('materials', {
-  id: text('id').primaryKey(),
-  lessonId: text('lesson_id').notNull().references(() => lessons.id),
-  objectKey: text('object_key').notNull(),
-  name: text('name').notNull(),
-  mime: text('mime').notNull(),
-  size: integer('size').notNull(),
-  createdAt: text('created_at').notNull(),
-});
+export const settings = sqliteTable('settings',{key:text('key').primaryKey(),value:text('value').notNull()});
+export const members = sqliteTable('members',{id:text('id').primaryKey(),name:text('name').notNull(),email:text('email').notNull(),role:text('role').notNull().default('LEARNER'),blocked:integer('blocked').notNull().default(0),goal:integer('goal').notNull().default(5),createdAt:text('created_at').notNull()});
+export const courses = sqliteTable('courses',{id:text('id').primaryKey(),ownerId:text('owner_id').notNull().references(()=>members.id),title:text('title').notNull(),description:text('description').notNull(),category:text('category').notNull(),level:text('level').notNull(),color:text('color').notNull(),status:text('status').notNull().default('DRAFT'),hidden:integer('hidden').notNull().default(0),quiz:text('quiz').notNull().default('[]'),version:integer('version').notNull().default(1),createdAt:text('created_at').notNull()});
+export const lessons = sqliteTable('lessons',{id:text('id').primaryKey(),courseId:text('course_id').notNull().references(()=>courses.id),title:text('title').notNull(),content:text('content').notNull(),position:integer('position').notNull(),minutes:integer('minutes').notNull().default(10),version:integer('version').notNull().default(1)},t=>[uniqueIndex('lesson_order').on(t.courseId,t.position)]);
+export const enrollments = sqliteTable('enrollments',{userId:text('user_id').notNull().references(()=>members.id),courseId:text('course_id').notNull().references(()=>courses.id),createdAt:text('created_at').notNull()},t=>[primaryKey({columns:[t.userId,t.courseId]})]);
+export const completions = sqliteTable('completions',{userId:text('user_id').notNull().references(()=>members.id),lessonId:text('lesson_id').notNull().references(()=>lessons.id),createdAt:text('created_at').notNull()},t=>[primaryKey({columns:[t.userId,t.lessonId]})]);
+export const notes = sqliteTable('notes',{userId:text('user_id').notNull().references(()=>members.id),lessonId:text('lesson_id').notNull().references(()=>lessons.id),body:text('body').notNull(),updatedAt:text('updated_at').notNull()},t=>[primaryKey({columns:[t.userId,t.lessonId]})]);
+export const attempts = sqliteTable('attempts',{id:text('id').primaryKey(),userId:text('user_id').notNull().references(()=>members.id),courseId:text('course_id').notNull().references(()=>courses.id),snapshot:text('snapshot').notNull(),answers:text('answers').notNull().default('{}'),score:integer('score'),status:text('status').notNull().default('IN_PROGRESS'),version:integer('version').notNull().default(1),createdAt:text('created_at').notNull(),submittedAt:text('submitted_at'),expiresAt:text('expires_at').notNull()});
+export const activeAttempts=sqliteTable('active_attempts',{userId:text('user_id').notNull().references(()=>members.id),courseId:text('course_id').notNull().references(()=>courses.id),attemptId:text('attempt_id').notNull().references(()=>attempts.id)},t=>[primaryKey({columns:[t.userId,t.courseId]})]);
+export const materials=sqliteTable('materials',{id:text('id').primaryKey(),lessonId:text('lesson_id').notNull().references(()=>lessons.id),objectKey:text('object_key').notNull(),name:text('name').notNull(),mime:text('mime').notNull(),size:integer('size').notNull(),createdAt:text('created_at').notNull()});
