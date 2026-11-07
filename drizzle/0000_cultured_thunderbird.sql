@@ -24,6 +24,14 @@ CREATE TABLE `attempts` (
 	FOREIGN KEY (`course_id`) REFERENCES `courses`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
+CREATE TABLE `audit` (
+	`id` text PRIMARY KEY NOT NULL,
+	`actor_id` text NOT NULL,
+	`action` text NOT NULL,
+	`resource` text NOT NULL,
+	`created_at` text NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE `completions` (
 	`user_id` text NOT NULL,
 	`lesson_id` text NOT NULL,

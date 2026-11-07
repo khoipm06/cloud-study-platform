@@ -1,0 +1,71 @@
+// Exercises the actual route module with SQLite and an in-memory R2 adapter.
+// No network listeners, production records, or platform credentials are used.
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {DatabaseSync} from 'node:sqlite';
+import {AsyncLocalStorage} from 'node:async_hooks';
+import ts from 'typescript';
+const database=new DatabaseSync(':memory:');database.exec('PRAGMA foreign_keys=ON;');
+database.exec(readFileSync(new URL('../drizzle/0000_cultured_thunderbird.sql',import.meta.url),'utf8'));
+class Statement{constructor(sql,args=[]){this.sql=sql;this.args=args;}bind(...args){return new Statement(this.sql,args);}async first(){return database.prepare(this.sql).get(...this.args)||null;}async all(){return {results:database.prepare(this.sql).all(...this.args)};}async run(){const r=database.prepare(this.sql).run(...this.args);return {meta:{changes:Number(r.changes)}};}}
+const DB={prepare:sql=>new Statement(sql),batch:async statements=>{database.exec('BEGIN');try{const result=[];for(const s of statements)result.push(await s.run());database.exec('COMMIT');return result;}catch(e){database.exec('ROLLBACK');throw e;}}};
+const files=new Map();const BUCKET={put:async(k,b)=>files.set(k,b),get:async k=>files.has(k)?{body:files.get(k)}:null,delete:async k=>files.delete(k)};
+const auth=new AsyncLocalStorage();
+async function load(relative){const s=readFileSync(new URL(relative,import.meta.url),'utf8');const js=ts.transpileModule(s,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;return import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));}
+const rules=await load('../lib/rules.ts');const seeds=await load('../lib/seed.ts');
+globalThis.__mohocTest={env:{DB,BUCKET},getChatGPTUser:async()=>auth.getStore()||null,...rules,...seeds};
+let source=readFileSync(new URL('../app/api/[...path]/route.ts',import.meta.url),'utf8');source=source.replace(/^import .*;\n/gm,'');
+source='const {env,getChatGPTUser,seedCourses,grade,redact,validQuiz,validAnswers,fileKind}=globalThis.__mohocTest;\n'+source;
+const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
+const route=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
+const owner={userId:'owner',displayName:'Người tạo đồ án',email:'owner@example.test'};
+const learner={userId:'learner',displayName:'Học viên A',email:'learner@example.test'};
+const other={userId:'other',displayName:'Học viên B',email:'other@example.test'};
+let checks=0;
+async function request(user,path,body,options={}){return auth.run(user,async()=>{const headers={'X-Mo-Hoc':'1','Origin':'https://test.local',...options.headers};const req=new Request('https://test.local/api/'+path,{method:body===undefined?'GET':'POST',headers,body:body===undefined?undefined:body instanceof FormData?body:JSON.stringify(body)});const res=await route[body===undefined?'GET':'POST'](req);let data;try{data=await res.clone().json();}catch{data=await res.text();}return {status:res.status,data,res};});}
+function ok(label,result,expected=200){assert.equal(result.status,expected,`${label}: ${JSON.stringify(result.data)}`);checks++;console.log('PASS',label);return result.data;}
+ok('anonymous request rejected',await request(null,'state'),401);
+const initial=ok('private owner bootstrap and seed',await request(owner,'state'));assert.equal(initial.courses.length,6);assert.equal(initial.user.role,'ADMIN');
+const student=ok('new users become learners',await request(learner,'state'));assert.equal(student.user.role,'LEARNER');
+ok('cross-origin mutation rejected',await request(learner,'profile',{name:'Bad',goal:5},{headers:{Origin:'https://evil.test'}}),403);
+ok('missing CSRF header rejected',await request(learner,'profile',{name:'Bad',goal:5},{headers:{'X-Mo-Hoc':''}}),403);
+ok('learner cannot administer',await request(learner,'admin'),403);
+ok('learner cannot create courses',await request(learner,'course-save',{title:'Bad'}),403);
+const preview=ok('catalog detail redacts lesson body and quiz key',await request(learner,'courses/web-can-ban'));assert.equal(preview.lessons[0].content,undefined);assert.equal(preview.quiz,undefined);
+ok('unenrolled completion rejected',await request(learner,'complete',{lesson_id:'web-can-ban-1'}),403);
+ok('enrollment succeeds',await request(learner,'enroll',{course_id:'web-can-ban'}));ok('duplicate enrollment is idempotent',await request(learner,'enroll',{course_id:'web-can-ban'}));assert.equal(database.prepare("SELECT count(*) n FROM enrollments WHERE user_id='learner'").get().n,1);
+const detail=ok('enrolled learner receives content',await request(learner,'courses/web-can-ban'));assert.ok(detail.lessons[0].content);assert.equal(detail.quiz,undefined);
+ok('completion saves',await request(learner,'complete',{lesson_id:'web-can-ban-1'}));ok('repeated completion does not inflate count',await request(learner,'complete',{lesson_id:'web-can-ban-1'}));assert.equal(database.prepare("SELECT count(*) n FROM completions WHERE user_id='learner'").get().n,1);
+ok('note saves',await request(learner,'notes',{lesson_id:'web-can-ban-1',body:'HTML là cấu trúc. CSS là giao diện.'}));
+const isolated=ok('notes isolated across users',await request(other,'state'));assert.equal(isolated.notes.length,0);
+const attempt=ok('quiz starts without answers or explanations',await request(learner,'quiz-start',{course_id:'web-can-ban'}),201);assert.ok(attempt.questions.every(q=>!('correct'in q)&&!('explanation'in q)));
+const same=ok('active attempt resumes',await request(learner,'quiz-start',{course_id:'web-can-ban'}));assert.equal(same.id,attempt.id);
+ok('another user cannot read attempt',await request(other,'attempts/'+attempt.id),404);
+ok('invalid option is rejected',await request(learner,'quiz-answers',{attempt_id:attempt.id,version:1,answers:{w1:99}}),422);
+const saved=ok('answers persist before submit',await request(learner,'quiz-answers',{attempt_id:attempt.id,version:1,answers:{w1:0,w2:1,w3:2}}));assert.equal(saved.version,2);
+ok('stale answer update rejected',await request(learner,'quiz-answers',{attempt_id:attempt.id,version:1,answers:{w1:1}}),409);
+const resumed=ok('reopened quiz restores saved answers',await request(learner,'quiz-start',{course_id:'web-can-ban'}));assert.deepEqual(resumed.answers,{w1:0,w2:1,w3:2});
+const result=ok('server grades quiz correctly',await request(learner,'quiz-submit',{attempt_id:attempt.id,version:2,answers:resumed.answers}));assert.equal(result.score,100);assert.equal(result.status,'SUBMITTED');assert.ok('correct'in result.questions[0]);
+const repeated=ok('repeated submit returns immutable result',await request(learner,'quiz-submit',{attempt_id:attempt.id,version:1,answers:{w1:1}}));assert.equal(repeated.score,100);
+ok('submitted answers cannot change',await request(learner,'quiz-answers',{attempt_id:attempt.id,version:3,answers:{w1:1}}),409);
+const newCourse=ok('owner creates draft',await request(owner,'course-save',{title:'Khóa kiểm thử',description:'Nội dung phục vụ kiểm thử học tập.',category:'Công nghệ',level:'Nhập môn'}),201);
+ok('draft is private',await request(learner,'courses/'+newCourse.id),403);
+ok('incomplete draft cannot publish',await request(owner,'course-status',{course_id:newCourse.id,status:'PUBLISHED',version:1}),422);
+const newLesson=ok('owner adds lesson',await request(owner,'lesson-save',{course_id:newCourse.id,title:'Bài kiểm thử đầu tiên',content:'Nội dung bài kiểm thử có đủ chi tiết để đọc.',minutes:10}),201);
+const q=[{id:'t1',prompt:'Một cộng một bằng mấy?',options:['Hai','Ba'],correct:0,explanation:'1 + 1 = 2.'}];
+ok('owner authors quiz',await request(owner,'quiz-save',{course_id:newCourse.id,version:1,questions:q}));
+ok('stale course change rejected',await request(owner,'course-status',{course_id:newCourse.id,status:'PUBLISHED',version:1}),409);
+ok('valid course publishes',await request(owner,'course-status',{course_id:newCourse.id,status:'PUBLISHED',version:2}));
+ok('published lesson structure freezes',await request(owner,'lesson-save',{course_id:newCourse.id,title:'Bài mới không được thêm',content:'Nội dung này không được phép thêm vào khóa đã xuất bản.',minutes:10}),409);
+const badFile=new FormData();badFile.set('lesson_id',newLesson.id);badFile.set('file',new File(['hello'],'fake.pdf',{type:'application/pdf'}));ok('fake PDF rejected by signature',await request(owner,'upload',badFile),422);
+const goodFile=new FormData();goodFile.set('lesson_id',newLesson.id);goodFile.set('file',new File(['%PDF-1.4\n%%EOF'],'example.pdf',{type:'application/pdf'}));const file=ok('valid-signature PDF persists to R2',await request(owner,'upload',goodFile),201);assert.equal(files.size,1);
+ok('non-enrolled file access rejected',await request(learner,'files/'+file.id),403);
+ok('authorized file download works',await request(owner,'files/'+file.id));
+ok('owner removes file and object',await request(owner,'file-delete',{id:file.id}));assert.equal(files.size,0);
+ok('hidden course blocks learning',await request(owner,'moderate',{course_id:'web-can-ban',hidden:true,version:1}));ok('hidden lesson cannot complete',await request(learner,'complete',{lesson_id:'web-can-ban-2'}),403);
+ok('personal quiz history retained after moderation',await request(learner,'attempts/'+attempt.id));
+ok('admin identity cannot be downgraded',await request(owner,'member-update',{id:'owner',role:'LEARNER',blocked:true}),403);
+ok('admin can block a learner',await request(owner,'member-update',{id:'learner',role:'LEARNER',blocked:true}));ok('blocked identity cannot access data',await request(learner,'state'),403);
+assert.equal(rules.grade(q,{t1:0}),100);assert.equal(rules.grade(q,{t1:1}),0);assert.equal(rules.validQuiz([{...q[0],correct:9}]),false);
+console.log(`\n${checks} API checks passed; grade/validation boundary checks passed.`);
+database.close();delete globalThis.__mohocTest;
