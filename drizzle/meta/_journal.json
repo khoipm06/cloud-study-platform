@@ -38,6 +38,13 @@
       "breakpoints": true
     },
     {
+      "idx": 6,
+      "version": "6",
+      "when": 1793613591721,
+      "tag": "0006_petite_vulcan",
+      "breakpoints": true
+    },
+    {
       "idx": 8,
       "version": "6",
       "when": 1793630643419,
