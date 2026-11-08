@@ -1,0 +1,12 @@
+{
+  "id": "/",
+  "name": "Cloud study platform",
+  "short_name": "Cloud study",
+  "lang": "vi",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8f9f5",
+  "theme_color": "#28584b",
+  "icons": [{"src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}]
+}
