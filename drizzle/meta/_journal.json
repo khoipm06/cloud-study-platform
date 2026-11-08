@@ -38,10 +38,24 @@
       "breakpoints": true
     },
     {
+      "idx": 5,
+      "version": "6",
+      "when": 1793612436193,
+      "tag": "0005_loud_lorna_dane",
+      "breakpoints": true
+    },
+    {
       "idx": 6,
       "version": "6",
       "when": 1793613591721,
       "tag": "0006_petite_vulcan",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1793615668779,
+      "tag": "0007_classy_timeslip",
       "breakpoints": true
     },
     {
