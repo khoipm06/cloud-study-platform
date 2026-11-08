@@ -1,6 +1,6 @@
 {
-  "name": "mo-hoc-mvp",
-  "version": "0.1.0",
+  "name": "cloud-study-platform",
+  "version": "1.7.0",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
