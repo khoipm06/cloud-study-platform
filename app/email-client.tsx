@@ -1,0 +1,21 @@
+'use client';
+import {useEffect,useRef,useState} from 'react';
+import {Mail,CheckCircle2} from 'lucide-react';
+import {featureApi as api} from './features-client';
+import {Dialog} from './dialog';
+
+export function EmailAccountActions(){
+ const [configured,setConfigured]=useState<boolean|null>(null),[link,setLink]=useState<{kind:string;token:string}|null>(null),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState('');const lock=useRef(false);
+ useEffect(()=>{api('auth-config').then(r=>setConfigured(r.email_delivery)).catch(()=>setConfigured(false));const inspect=()=>{const parts=window.location.hash.slice(1).split('/');if(parts[0]==='auth'&&['verify','reset'].includes(parts[1])&&parts[2]){setLink({kind:parts[1],token:parts[2]});window.history.replaceState(null,'',window.location.pathname+window.location.search+'#auth');}};inspect();window.addEventListener('hashchange',inspect);return()=>window.removeEventListener('hashchange',inspect);},[]);
+ const run=async(fn:()=>Promise<void>)=>{if(lock.current)return;lock.current=true;setBusy(true);setError('');setMessage('');try{await fn();}catch(e:any){setError(e.message);}finally{lock.current=false;setBusy(false);}};
+ const content=<section className="email-actions"><h3><Mail size={17}/> Xác minh và khôi phục qua email</h3>{error&&<div className="alert" role="alert">{error}</div>}{message&&<p className="learning-notice" role="status">{message}</p>}
+  {link?.kind==='verify'?<><p>Xác nhận bạn muốn dùng liên kết này để xác minh địa chỉ email của tài khoản.</p><button className="btn secondary" disabled={busy} onClick={()=>run(async()=>{const r=await api('auth-email-verify',{token:link.token});setMessage(r.message);setLink(null);})}><CheckCircle2 size={16}/> Xác minh email</button></>:link?.kind==='reset'?<form onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);run(async()=>{if(f.get('password')!==f.get('confirm_password'))throw new Error('Hai mật khẩu cần giống nhau.');const r=await api('auth-email-reset',{token:link.token,password:f.get('password')});setMessage(r.message);setLink(null);});}}><p>Liên kết dùng một lần và có hiệu lực 30 phút. Đặt lại mật khẩu sẽ kết thúc mọi phiên đăng nhập.</p><label>Mật khẩu mới<input name="password" type="password" autoComplete="new-password" required minLength={15} maxLength={128}/></label><label>Nhập lại mật khẩu<input name="confirm_password" type="password" autoComplete="new-password" required minLength={15} maxLength={128}/></label><div className="modal-actions"><button className="btn primary" disabled={busy}>Đặt lại mật khẩu</button></div></form>:configured?<details><summary>Quên mật khẩu hoặc cần gửi lại email xác minh?</summary><form onSubmit={e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.currentTarget));run(async()=>{const r=await api('auth-email-request',f);setMessage(r.message);});}}><label>Email tài khoản<input name="email" type="email" autoComplete="email" required maxLength={254}/></label><label>Bạn cần<select name="purpose"><option value="RESET">Đặt lại mật khẩu</option><option value="VERIFY">Gửi lại email xác minh</option></select></label><p className="form-help">Xác minh email không thay thế bước quản trị duyệt tài khoản.</p><div className="modal-actions"><button className="btn secondary" disabled={busy}>Gửi hướng dẫn qua email</button></div></form></details>:<p className="form-help">{configured===null?'Đang kiểm tra khả năng gửi email…':'Gửi email chưa được bật. Bạn vẫn có thể khôi phục bằng mã dự phòng.'}</p>}
+ </section>;
+ return link?<Dialog title={link.kind==='verify'?'Xác minh email':'Đặt lại mật khẩu'} onClose={()=>setLink(null)}>{content}</Dialog>:content;
+}
+
+export function EmailVerificationStatus({user}:{user:any}){
+ const [data,setData]=useState<any>(null);useEffect(()=>{let live=true;api('account-security').then(r=>{if(live)setData(r);}).catch(()=>{});return()=>{live=false;};},[user.id]);
+ if(!data?.password_enabled)return null;
+ return <p className="form-help">Email tài khoản: {data.email_verified?'Đã xác minh bằng liên kết email':'Chưa xác minh bằng liên kết email'}. {data.email_delivery&&!data.email_verified&&<a href="#auth">Gửi email xác minh</a>}</p>;
+}

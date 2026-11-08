@@ -5,6 +5,7 @@ declare namespace Cloudflare {
     VAPID_SUBJECT?: string;
     JUDGE0_URL?: string;
     JUDGE0_TOKEN?: string;
+    BOOTSTRAP_ADMIN_EMAIL?: string;
     BUCKET?: R2Bucket;
   }
 }
