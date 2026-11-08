@@ -1,0 +1,153 @@
+.wallet-summary,
+.market-review {
+  padding: 20px;
+}
+
+.wallet-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.wallet-summary p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.wallet-summary strong {
+  display: block;
+  margin: 4px 0 7px;
+  color: var(--green);
+  font-size: clamp(25px, 4vw, 34px);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.market-log {
+  margin: 0;
+  padding: 0 20px;
+  list-style: none;
+}
+
+.market-log > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
+.market-log > li:last-child {
+  border-bottom: 0;
+}
+
+.market-log p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.market-log-meta {
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.market-log-meta time {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.wallet-in { color: #216149; }
+.wallet-out { color: #8a442b; }
+
+.wallet-confirm {
+  margin: 14px 0;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.wallet-confirm > div {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 5px 0;
+}
+
+.wallet-confirm dd {
+  margin: 0;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.market-review {
+  margin-bottom: 18px;
+}
+
+.market-review-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: var(--green);
+}
+
+.market-review-heading h2 {
+  font-size: 18px;
+}
+
+.review-reason {
+  margin: 0 0 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.market-quiz-details {
+  margin-top: 14px;
+}
+
+.market-quiz-details summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.market-quiz-preview {
+  margin: 12px 0;
+  padding-left: 24px;
+}
+
+.market-quiz-preview > li {
+  margin-bottom: 14px;
+}
+
+.wallet-grant-notice {
+  margin: 0 0 14px;
+  color: #216149;
+  font-weight: 600;
+}
+
+@media (max-width: 500px) {
+  .market-log {
+    padding: 0 14px;
+  }
+
+  .market-log > li {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+    gap: 6px;
+  }
+
+  .market-log-meta {
+    justify-items: start;
+    text-align: left;
+  }
+}
